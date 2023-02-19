@@ -43,7 +43,8 @@ class Training:
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-        raise NotImplementedError('Определите get_spent_calories')
+        raise NotImplementedError(
+            f"Определите get_spent_calories в {self.__class__.__name__}")
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке."""
@@ -51,8 +52,7 @@ class Training:
                            self.duration,
                            self.get_distance(),
                            self.get_mean_speed(),
-                           self.get_spent_calories(),
-                           )
+                           self.get_spent_calories(),)
 
 
 @dataclass
@@ -76,12 +76,10 @@ class SportsWalking(Training):
 
     CALORIES_MEAN_WEIGHT_1 = 0.035
     CALORIES_MEAN_WEIGHT_2 = 0.029
-    CALORIES_MEAN_WEIGHT_3 = 2
+    SQUARE = 2
     SM_IN_M = 100
-    M_IN_KM = 1000
     SECOND_IN_M = 60
-    MIN_IN_H = 60
-    KM_IN_MSEC = round(M_IN_KM / MIN_IN_H / SECOND_IN_M, 3)
+    KM_IN_MSEC = round(Training.M_IN_KM / Training.MIN_IN_H / SECOND_IN_M, 3)
 
     action: int
     duration: float
@@ -92,7 +90,7 @@ class SportsWalking(Training):
         return (
             (self.CALORIES_MEAN_WEIGHT_1 * self.weight
              + (self.get_mean_speed() * self.KM_IN_MSEC)
-             ** self.CALORIES_MEAN_WEIGHT_3 / (self.height / self.SM_IN_M)
+             ** self.SQUARE / (self.height / self.SM_IN_M)
              * self.CALORIES_MEAN_WEIGHT_2 * self.weight)
             * (self.duration * self.MIN_IN_H))
 
@@ -124,16 +122,18 @@ class Swimming(Training):
                 * self.CALORIES_WEIGHT * self.weight * self.duration)
 
 
+TRAINING_TYPES = {
+    'SWM': Swimming,
+    'RUN': Running,
+    'WLK': SportsWalking,
+}
+
+
 def read_package(workout_type: str, data: list) -> Training:
     """Прочитать данные полученные от датчиков."""
-    TRAINING_TYPES = {
-        'SWM': Swimming,
-        'RUN': Running,
-        'WLK': SportsWalking, }
     if workout_type not in TRAINING_TYPES:
-        print('Ошибка данных')
-    else:
-        return TRAINING_TYPES[workout_type](*data)
+        raise KeyError(f'Неподерживаемый тип тренировки {workout_type}')
+    return TRAINING_TYPES[workout_type](*data)
 
 
 def main(training: Training) -> None:
